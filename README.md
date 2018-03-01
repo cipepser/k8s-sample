@@ -7,7 +7,7 @@
 
 ## 実際に動かしてみる
 
-Hiroaki ONOさんの[Kubernetesに入門したい ](https://speakerdeck.com/hihihiroro/kubernetesniru-men-sitai)
+Hiroaki ONOさんの[Kubernetesに入門したい](https://speakerdeck.com/hihihiroro/kubernetesniru-men-sitai)
 の通りにk8sを触ってみる。
 
 ## Install
@@ -535,14 +535,303 @@ kubernetes-bootcamp-5d7f968ccb-5w7n2   1/1       Running   0          3m        
 kubernetes-bootcamp-5d7f968ccb-d7cjb   1/1       Running   1          3h        172.17.0.3   minikube
 ```
 
+## ローリングアップデート
+
+アプリ一覧、POD一覧/詳細
+
+```
+kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   2         2         2            2           3h
+
+❯ kubectl get pods -o wide
+NAME                                   READY     STATUS    RESTARTS   AGE       IP           NODE
+kubernetes-bootcamp-5d7f968ccb-5w7n2   1/1       Running   0          7m        172.17.0.7   minikube
+kubernetes-bootcamp-5d7f968ccb-d7cjb   1/1       Running   1          3h        172.17.0.3   minikube
+
+❯ kubectl describe pods
+Name:           kubernetes-bootcamp-5d7f968ccb-5w7n2
+Namespace:      default
+Node:           minikube/192.168.99.100
+Start Time:     Thu, 01 Mar 2018 21:48:17 +0900
+Labels:         pod-template-hash=1839524776
+               run=kubernetes-bootcamp
+Annotations:    <none>
+Status:         Running
+IP:             172.17.0.7
+Controlled By:  ReplicaSet/kubernetes-bootcamp-5d7f968ccb
+Containers:
+ kubernetes-bootcamp:
+   Container ID:   docker://403cd2e445ded8112a421ddcba88c23d952f53cf4ab24fbc02484fea35ebdb4e
+   Image:          docker.io/jocatalin/kubernetes-bootcamp:v1
+   Image ID:       docker-pullable://jocatalin/kubernetes-bootcamp@sha256:0d6b8ee63bb57c5f5b6156f446b3bc3b3c143d233037f3a2f00e279c8fcc64af
+   Port:           8080/TCP
+   State:          Running
+     Started:      Thu, 01 Mar 2018 21:48:18 +0900
+   Ready:          True
+   Restart Count:  0
+   Environment:    <none>
+   Mounts:
+     /var/run/secrets/kubernetes.io/serviceaccount from default-token-b8pj8 (ro)
+Conditions:
+ Type           Status
+ Initialized    True
+ Ready          True
+ PodScheduled   True
+Volumes:
+ default-token-b8pj8:
+   Type:        Secret (a volume populated by a Secret)
+   SecretName:  default-token-b8pj8
+   Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     <none>
+Events:
+ Type    Reason                 Age   From               Message
+ ----    ------                 ----  ----               -------
+ Normal  Scheduled              7m    default-scheduler  Successfully assigned kubernetes-bootcamp-5d7f968ccb-5w7n2 to minikube
+ Normal  SuccessfulMountVolume  7m    kubelet, minikube  MountVolume.SetUp succeeded for volume "default-token-b8pj8"
+ Normal  Pulled                 7m    kubelet, minikube  Container image "docker.io/jocatalin/kubernetes-bootcamp:v1" already present on machine
+ Normal  Created                7m    kubelet, minikube  Created container
+ Normal  Started                7m    kubelet, minikube  Started container
 
 
+Name:           kubernetes-bootcamp-5d7f968ccb-d7cjb
+Namespace:      default
+Node:           minikube/192.168.99.100
+Start Time:     Thu, 01 Mar 2018 18:37:56 +0900
+Labels:         app=v1
+               pod-template-hash=1839524776
+               run=kubernetes-bootcamp
+Annotations:    <none>
+Status:         Running
+IP:             172.17.0.3
+Controlled By:  ReplicaSet/kubernetes-bootcamp-5d7f968ccb
+Containers:
+ kubernetes-bootcamp:
+   Container ID:   docker://f3705aa4a0c03b2e9a87441b04883a8a14c0de1f8a783b9e2dc0758ff8544c72
+   Image:          docker.io/jocatalin/kubernetes-bootcamp:v1
+   Image ID:       docker-pullable://jocatalin/kubernetes-bootcamp@sha256:0d6b8ee63bb57c5f5b6156f446b3bc3b3c143d233037f3a2f00e279c8fcc64af
+   Port:           8080/TCP
+   State:          Running
+     Started:      Thu, 01 Mar 2018 21:30:39 +0900
+   Last State:     Terminated
+     Reason:       Error
+     Exit Code:    255
+     Started:      Thu, 01 Mar 2018 18:38:31 +0900
+     Finished:     Thu, 01 Mar 2018 21:30:05 +0900
+   Ready:          True
+   Restart Count:  1
+   Environment:    <none>
+   Mounts:
+     /var/run/secrets/kubernetes.io/serviceaccount from default-token-b8pj8 (ro)
+Conditions:
+ Type           Status
+ Initialized    True
+ Ready          True
+ PodScheduled   True
+Volumes:
+ default-token-b8pj8:
+   Type:        Secret (a volume populated by a Secret)
+   SecretName:  default-token-b8pj8
+   Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     <none>
+Events:
+ Type    Reason                 Age   From               Message
+ ----    ------                 ----  ----               -------
+ Normal  SuccessfulMountVolume  24m   kubelet, minikube  MountVolume.SetUp succeeded for volume "default-token-b8pj8"
+ Normal  SandboxChanged         24m   kubelet, minikube  Pod sandbox changed, it will be killed and re-created.
+ Normal  Pulled                 24m   kubelet, minikube  Container image "docker.io/jocatalin/kubernetes-bootcamp:v1" already present on machine
+ Normal  Created                24m   kubelet, minikube  Created container
+ Normal  Started                24m   kubelet, minikube  Started container
+```
+
+アプリをv2にバージョンアップ
+
+```
+❯ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatalin/kubernetes-bootcamp:v2
+deployment "kubernetes-bootcamp" image updated
+```
+
+`ContainerCreating`で起動して、切り替わる  
+`Terminating`で消していく。
+
+```
+❯ kubectl get pods
+NAME                                   READY     STATUS              RESTARTS   AGE
+kubernetes-bootcamp-6b7849c495-8g4rh   1/1       Running             0          2s
+kubernetes-bootcamp-6b7849c495-b2jw9   0/1       ContainerCreating   0          2s
+kubernetes-bootcamp-7689dc585d-bdmkq   1/1       Running             0          1m
+kubernetes-bootcamp-7689dc585d-bg29b   1/1       Terminating         0          1m
+```
+
+バージョンアップした(v2)ことの確認
+
+```
+❯ kubectl describe services/kubernetes-bootcamp
+Name:                     kubernetes-bootcamp
+Namespace:                default
+Labels:                   run=kubernetes-bootcamp
+Annotations:              <none>
+Selector:                 run=kubernetes-bootcamp
+Type:                     NodePort
+IP:                       10.101.236.215
+Port:                     <unset>  8080/TCP
+TargetPort:               8080/TCP
+NodePort:                 <unset>  32595/TCP
+Endpoints:                172.17.0.8:8080,172.17.0.9:8080
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+
+❯ export NODE_PORT=$(kubectl get services/kubernetes-bootcamp -o go-template='{{(index .spec.ports 0).nodePort}}')
+
+❯ export NODE_IP=$(minikube ip)
+
+❯ curl http://$NODE_IP:$NODE_PORT
+Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-7689dc585d-l2pd2 | v=2
+```
+
+ローリングアップデートの状況確認
+
+```
+❯ kubectl rollout status deployments/kubernetes-bootcamp
+deployment "kubernetes-bootcamp" successfully rolled out
+```
+
+PODの`Image`が`v2`になった
+
+```
+❯ kubectl describe pods
+Name:           kubernetes-bootcamp-7689dc585d-l2pd2
+Namespace:      default
+Node:           minikube/192.168.99.100
+Start Time:     Thu, 01 Mar 2018 22:01:49 +0900
+Labels:         pod-template-hash=3245871418
+                run=kubernetes-bootcamp
+Annotations:    <none>
+Status:         Running
+IP:             172.17.0.9
+Controlled By:  ReplicaSet/kubernetes-bootcamp-7689dc585d
+Containers:
+  kubernetes-bootcamp:
+    Container ID:   docker://526d8db756fed8ea42adb7789934d155aa3faf920ca6a1a8d294c52745655685
+    Image:          jocatalin/kubernetes-bootcamp:v2
+    Image ID:       docker-pullable://jocatalin/kubernetes-bootcamp@sha256:fb1a3ced00cecfc1f83f18ab5cd14199e30adc1b49aa4244f5d65ad3f5feb2a5
+    Port:           8080/TCP
+    State:          Running
+      Started:      Thu, 01 Mar 2018 22:01:50 +0900
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-b8pj8 (ro)
+Conditions:
+  Type           Status
+  Initialized    True
+  Ready          True
+  PodScheduled   True
+Volumes:
+  default-token-b8pj8:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-b8pj8
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     <none>
+Events:
+  Type    Reason                 Age   From               Message
+  ----    ------                 ----  ----               -------
+  Normal  Scheduled              4m    default-scheduler  Successfully assigned kubernetes-bootcamp-7689dc585d-l2pd2 to minikube
+  Normal  SuccessfulMountVolume  4m    kubelet, minikube  MountVolume.SetUp succeeded for volume "default-token-b8pj8"
+  Normal  Pulled                 4m    kubelet, minikube  Container image "jocatalin/kubernetes-bootcamp:v2" already present on machine
+  Normal  Created                4m    kubelet, minikube  Created container
+  Normal  Started                4m    kubelet, minikube  Started container
 
 
+Name:           kubernetes-bootcamp-7689dc585d-mr8k9
+Namespace:      default
+Node:           minikube/192.168.99.100
+Start Time:     Thu, 01 Mar 2018 22:01:49 +0900
+Labels:         pod-template-hash=3245871418
+                run=kubernetes-bootcamp
+Annotations:    <none>
+Status:         Running
+IP:             172.17.0.8
+Controlled By:  ReplicaSet/kubernetes-bootcamp-7689dc585d
+Containers:
+  kubernetes-bootcamp:
+    Container ID:   docker://8cb10570e46efbd143fd6dd42c96b3ddf8004a2c0c705b85b6ffe4917bc7a309
+    Image:          jocatalin/kubernetes-bootcamp:v2
+    Image ID:       docker-pullable://jocatalin/kubernetes-bootcamp@sha256:fb1a3ced00cecfc1f83f18ab5cd14199e30adc1b49aa4244f5d65ad3f5feb2a5
+    Port:           8080/TCP
+    State:          Running
+      Started:      Thu, 01 Mar 2018 22:01:50 +0900
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-b8pj8 (ro)
+Conditions:
+  Type           Status
+  Initialized    True
+  Ready          True
+  PodScheduled   True
+Volumes:
+  default-token-b8pj8:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-b8pj8
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     <none>
+Events:
+  Type    Reason                 Age   From               Message
+  ----    ------                 ----  ----               -------
+  Normal  Scheduled              4m    default-scheduler  Successfully assigned kubernetes-bootcamp-7689dc585d-mr8k9 to minikube
+  Normal  SuccessfulMountVolume  4m    kubelet, minikube  MountVolume.SetUp succeeded for volume "default-token-b8pj8"
+  Normal  Pulled                 4m    kubelet, minikube  Container image "jocatalin/kubernetes-bootcamp:v2" already present on machine
+  Normal  Created                4m    kubelet, minikube  Created container
+  Normal  Started                4m    kubelet, minikube  Started container
+```
 
+存在しないv10にアップデートしようとすると失敗する
 
+```
+❯ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatalin/kubernetes-bootcamp:v10
+deployment "kubernetes-bootcamp" image updated
 
+❯ kubectl get pods
+NAME                                   READY     STATUS         RESTARTS   AGE
+kubernetes-bootcamp-5f9999f64c-fpnf2   0/1       ErrImagePull   0          14s
+kubernetes-bootcamp-5f9999f64c-rqqgf   0/1       ErrImagePull   0          14s
+kubernetes-bootcamp-7689dc585d-l2pd2   1/1       Running        0          6m
+kubernetes-bootcamp-7689dc585d-mr8k9   1/1       Terminating    0          6m
 
+❯ kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   2         3         2            1           3h
+```
+
+ローリングアップデートの中止で`ErrImagePull`がなくなる
+
+```
+❯ kubectl rollout undo deployments/kubernetes-bootcamp
+deployment "kubernetes-bootcamp"
+
+~/Documents/sand/k8s-sample master* ⇡
+❯ kubectl get pods
+NAME                                   READY     STATUS    RESTARTS   AGE
+kubernetes-bootcamp-7689dc585d-kl642   1/1       Running   0          9s
+kubernetes-bootcamp-7689dc585d-l2pd2   1/1       Running   0          7m
+
+~/Documents/sand/k8s-sample master* ⇡
+❯ kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   2         2         2            2           3h
+```
 
 
 
