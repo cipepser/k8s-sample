@@ -7,8 +7,8 @@
 
 ## 実際に動かしてみる
 
-[Kubernetesに入門したい ](https://speakerdeck.com/hihihiroro/kubernetesniru-men-sitai)
-を参考にk8sを触ってみる
+Hiroaki ONOさんの[Kubernetesに入門したい ](https://speakerdeck.com/hihihiroro/kubernetesniru-men-sitai)
+の通りにk8sを触ってみる。
 
 ## Install
 
@@ -469,6 +469,77 @@ curl: (7) Failed to connect to 192.168.99.100 port 31399: Connection refused
 ❯ kubectl exec -ti $POD_NAME curl localhost:8080
 Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-5d7f968ccb-d7cjb | v=1
 ```
+
+## アプリのスケールアップ
+
+スケールアップ前
+
+```
+❯ kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   1         1         1            1           3h
+```
+
+`scale`コマンドで4個にアプリをスケールアップさせる。すごい。簡単だ。
+
+```
+❯ kubectl scale deployments/kubernetes-bootcamp --replicas=4
+deployment "kubernetes-bootcamp" scaled
+
+❯ kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   4         4         4            4           3h
+```
+
+POD一覧でも4つになってる
+
+```
+❯ kubectl get pods -o wide
+NAME                                   READY     STATUS    RESTARTS   AGE       IP           NODE
+kubernetes-bootcamp-5d7f968ccb-5w7n2   1/1       Running   0          1m        172.17.0.7   minikube
+kubernetes-bootcamp-5d7f968ccb-6xlqp   1/1       Running   0          1m        172.17.0.6   minikube
+kubernetes-bootcamp-5d7f968ccb-d7cjb   1/1       Running   1          3h        172.17.0.3   minikube
+kubernetes-bootcamp-5d7f968ccb-g9nz8   1/1       Running   0          1m        172.17.0.5   minikube
+
+```
+
+2つにスケールダウン
+
+```
+❯ kubectl scale deployments/kubernetes-bootcamp --replicas=2
+deployment "kubernetes-bootcamp" scaled
+
+❯ kubectl get deployments
+NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   2         2         2            2           3h
+
+```
+
+2つが`Terminating`になる
+
+```
+❯ kubectl get pods -o wide
+NAME                                   READY     STATUS        RESTARTS   AGE       IP           NODE
+kubernetes-bootcamp-5d7f968ccb-5w7n2   1/1       Running       0          1m        172.17.0.7   minikube
+kubernetes-bootcamp-5d7f968ccb-6xlqp   1/1       Terminating   0          1m        172.17.0.6   minikube
+kubernetes-bootcamp-5d7f968ccb-d7cjb   1/1       Running       1          3h        172.17.0.3   minikube
+kubernetes-bootcamp-5d7f968ccb-g9nz8   1/1       Terminating   0          1m        172.17.0.5   minikube
+```
+
+ちょっと時間空けると、2つにPODが減る
+
+```
+❯ kubectl get pods -o wide
+NAME                                   READY     STATUS    RESTARTS   AGE       IP           NODE
+kubernetes-bootcamp-5d7f968ccb-5w7n2   1/1       Running   0          3m        172.17.0.7   minikube
+kubernetes-bootcamp-5d7f968ccb-d7cjb   1/1       Running   1          3h        172.17.0.3   minikube
+```
+
+
+
+
+
+
 
 
 
