@@ -6,3 +6,5 @@
 
 1. [Docker for Mac with Kubernetes](https://github.com/cipepser/k8s-sample/blob/master/3_Docker_for_Mac_with_Kubernetes.md)
   Macで動かすときはこれを参考に。
+
+1. [4_Kubernetes_速習会](https://github.com/cipepser/k8s-sample/blob/master/4_Kubernetes_%E9%80%9F%E7%BF%92%E4%BC%9A.md)
