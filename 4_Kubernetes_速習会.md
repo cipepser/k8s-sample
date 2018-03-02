@@ -413,21 +413,100 @@ podの削除
 pod "liveness-exec" deleted
 ```
 
+### namespaceを超えた通信と名前解決
 
+pod一覧
 
+```
+❯ k get po --namespace=cipepser
+NAME                                 READY     STATUS    RESTARTS   AGE
+blue-7f5c4c44cf-5n2s2                1/1       Running   0          4h
+docker-hello-world-b5f7848d5-2lgns   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-4x5wm   1/1       Running   0          4h
+docker-hello-world-b5f7848d5-cqxjx   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-ctf4z   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-gmkwb   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-h868l   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-q9qcg   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-qsclv   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-v99dn   0/1       Pending   0          4h
+docker-hello-world-b5f7848d5-x6gv2   0/1       Pending   0          4h
+green-76b9bf4dd8-2jvtn               1/1       Running   0          2h
+green-76b9bf4dd8-b8dhc               1/1       Running   0          2h
+green-76b9bf4dd8-fgt5x               1/1       Running   0          2h
+green-76b9bf4dd8-g6tj5               1/1       Running   0          2h
+green-76b9bf4dd8-h8d2n               1/1       Running   0          2h
+green-76b9bf4dd8-kxd87               1/1       Running   0          4h
+green-76b9bf4dd8-l7tq9               1/1       Running   0          2h
+green-76b9bf4dd8-vrmwh               1/1       Running   0          2h
+green-76b9bf4dd8-vwnm4               1/1       Running   0          2h
+green-76b9bf4dd8-wqlm5               1/1       Running   0          2h
+nginx-7455b586c5-skxdq               1/1       Running   0          2h
+nginxhttp-759fbc6564-k75hv           1/1       Running   0          2h
+```
 
+IPを調べる
 
+```
+❯ k describe po/blue-7f5c4c44cf-5n2s2 --namespace=cipepser
+Name:           blue-7f5c4c44cf-5n2s2
+Namespace:      cipepser
+Node:           docker-for-desktop/192.168.65.3
+Start Time:     Fri, 02 Mar 2018 11:45:45 +0900
+Labels:         app=go
+                color=blue
+                name=app
+                pod-template-hash=3917070079
+Annotations:    <none>
+Status:         Running
+IP:             10.1.0.5
+Controlled By:  ReplicaSet/blue-7f5c4c44cf
+Containers:
+  blue:
+    Container ID:   docker://9a8240fd3022a7767241de20f6c26fba93feae3fb12407d574064cb28e7e8b0b
+    Image:          quay.io/awakia/go_server
+    Image ID:       docker-pullable://quay.io/awakia/go_server@sha256:e9e7d8fe2235afcf95b1b181cef4ceba1c29e4a93338d6405f69a94e62237146
+    Port:           8080/TCP
+    State:          Running
+      Started:      Fri, 02 Mar 2018 11:45:57 +0900
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-f8285 (ro)
+Conditions:
+  Type           Status
+  Initialized    True
+  Ready          True
+  PodScheduled   True
+Volumes:
+  default-token-f8285:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-f8285
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:          <none>
+````
 
+shを起動
 
+```
+$ kubectl run -i --tty --rm busybox --image=busybox --restart=Never -- sh
+```
 
+`nslooup`で名前解決
 
+```
+/ # nslookup 10-1-0-5.cipepser.pod.cluster.local
+Server:    10.96.0.10
+Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
 
-
-
-
-
-
-
+Name:      10-1-0-5.cipepser.pod.cluster.local
+Address 1: 10.1.0.5
+```
 
 ## References
 * [Kubernetes 速習会](https://qiita.com/koudaiii/items/d0b3b0b78dc44d97232a)
