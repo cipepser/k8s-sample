@@ -497,7 +497,7 @@ shを起動
 $ kubectl run -i --tty --rm busybox --image=busybox --restart=Never -- sh
 ```
 
-`nslooup`で名前解決
+`nslookup`で名前解決
 
 ```
 / # nslookup 10-1-0-5.cipepser.pod.cluster.local
