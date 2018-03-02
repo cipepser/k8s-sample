@@ -1,3 +1,6 @@
 [submodule "4/docker-hello-world"]
 	path = 4/docker-hello-world
 	url = https://github.com/koudaiii/docker-hello-world
+[submodule "4/go_server"]
+	path = 4/go_server
+	url = https://github.com/koudaiii/go_server
